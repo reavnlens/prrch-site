@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRRCH – Photo Recognition, Repair & Care Hub</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #101622, #05060a);
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .shell {
+      width: 100%;
+      max-width: 840px;
+      background: rgba(9, 12, 20, 0.92);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+      padding: 1.75rem 1.75rem 2.1rem;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(161, 205, 252, 0.12);
+      color: #a1cdfc;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+    .tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.9rem, 3vw, 2.4rem);
+    }
+    .sub {
+      margin: 0 0 1.4rem;
+      font-size: 0.98rem;
+      color: #c5cbd9;
+    }
+    .glyph {
+      font-size: 0.95rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: #8fb8ff;
+      margin-bottom: 0.3rem;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 720px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .uploader {
+      border-radius: 14px;
+      padding: 1rem;
+      background: radial-gradient(circle at top left, #1b2436, #090c14);
+      border: 1px dashed rgba(161, 205, 252, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: center;
+    }
+    .drop-label {
+      font-size: 0.95rem;
+      color: #d4d7e4;
+    }
+    .file-input {
+      display: none;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      padding: 0.55rem 1.2rem;
+      border: none;
+      background: linear-gradient(135deg, #4f46e5, #14b8a6);
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.4rem;
+    }
+    .btn:hover {
+      filter: brightness(1.05);
+    }
+    .hint {
+      font-size: 0.78rem;
+      color: #a5acc3;
+    }
+    .list {
+      margin-top: 0.75rem;
+      text-align: left;
+      max-height: 170px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+      font-size: 0.85rem;
+    }
+    .file-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.3rem 0.35rem;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.82);
+      margin-bottom: 0.25rem;
+    }
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-meta {
+      opacity: 0.8;
+      font-size: 0.8rem;
+    }
+    .side {
+      font-size: 0.85rem;
+      color: #c5cbd9;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .side-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+    }
+    .side-bullet {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-top: 0.37rem;
+      background: #22c55e;
+    }
+    .side-heading {
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+    .side-meta {
+      opacity: 0.7;
+    }
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #8b90a5;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="glyph">RAΞVN</div>
+    <div class="tag">
+      <span class="tag-dot"></span>
+      Early prototype – visuals only, nothing is sent anywhere.
+    </div>
+    <h1>Drop your photos. We’ll turn them into a plan.</h1>
+    <p class="sub">
+      PRRCH is a quiet preview of Raevn’s photo-to-action workspace.  
+      For now, this page just lets you try the upload flow and see your files listed.
+    </p>
+
+    <section class="layout">
+      <!-- Uploader side -->
+      <section class="uploader">
+        <p class="drop-label">
+          Drop inspection photos or home repair shots here,<br />
+          or choose files from your device.
+        </p>
+
+        <button class="btn" id="chooseFilesBtn" type="button">
+          📷 Choose photos
+        </button>
+        <input
+          id="fileInput"
+          class="file-input"
+          type="file"
+          accept="image/*,application/pdf"
+          multiple
+        />
+
+        <p class="hint">
+          Prototype only — files never leave your browser.  
+          This is just here to prove the flow works.
+        </p>
+
+        <div id="fileList" class="list"></div>
+      </section>
+
+      <!-- Copy / explainer side -->
+      <section class="side">
+        <div class="side-item">
+          <div class="side-bullet"></div>
+          <div>
+            <div class="side-heading">Phase 1 – Upload & organize</div>
+            <div class="side-meta">
+              Take the messy camera roll or inspection report and
+              group photos into one “Photaction” – the starting point
+              for estimates, checklists, and quotes.
+            </div>
+          </div>
+        </div>
+
+        <div class="side-item">
+          <div class="side-bullet"></div>
+          <div>
+            <div class="side-heading">Phase 2 – AI “gut check”</div>
+            <div class="side-meta">
+              Later, this same uploader will talk to Raevn’s engine to
+              give rough cost ranges and flag anything urgent or safety-related.
+            </div>
+          </div>
+        </div>
+
+        <div class="side-item">
+          <div class="side-bullet"></div>
+          <div>
+            <div class="side-heading">Phase 3 – Local quotes (opt-in)</div>
+            <div class="side-meta">
+              When you’re ready, you’ll choose what to share with vetted
+              vendors. Until then, everything stays private to you.
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      <span>PRRCH – Photo Recognition, Repair & Care Hub.</span>
+      <span>Built on the Raevn intelligence layer. Prototype only.</span>
+    </footer>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const chooseBtn = document.getElementById("chooseFilesBtn");
+    const fileList = document.getElementById("fileList");
+
+    chooseBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+      const files = Array.from(fileInput.files || []);
+      fileList.innerHTML = "";
+
+      if (!files.length) {
+        fileList.innerHTML = "<div>No files selected yet.</div>";
+        return;
+      }
+
+      files.forEach((file) => {
+        const row = document.createElement("div");
+        row.className = "file-row";
+
+        const name = document.createElement("div");
+        name.className = "file-name";
+        name.textContent = file.name;
+
+        const meta = document.createElement("div");
+        meta.className = "file-meta";
+        const kb = file.size / 1024;
+        meta.textContent = `${file.type || "unknown"} · ${kb.toFixed(1)} KB`;
+
+        row.appendChild(name);
+        row.appendChild(meta);
+        fileList.appendChild(row);
+      });
+    });
+  </script>
+</body>
+</html>
