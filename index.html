@@ -280,14 +280,14 @@
   <div class="page">
     <div class="badge">
       <span class="badge-dot"></span>
-      Early prototype – visuals only, nothing is sent anywhere.
+      Early prototype – files stored in a private bucket, AI is still mock-only.
     </div>
 
     <h1>Drop your photos. We’ll turn them into a plan.</h1>
     <h2>
       PRRCH is a quiet preview of Raevn’s photo-to-action workspace.
-      For now, this page lets you try the upload flow and see a mock “AI gut check”
-      while a copy of your files is stored securely.
+      For now, this page lets you upload files into a private intake bucket
+      and see a mock “AI gut check” in your browser.
     </h2>
 
     <div class="layout">
@@ -319,7 +319,7 @@
           </button>
 
           <div class="status" id="status-msg">
-            <strong>Prototype note:</strong> analysis stays in this browser. Files are copied to a private intake bucket
+            <strong>Prototype note:</strong> AI is simulated here. Files are copied to a private intake bucket
             so you can wire this into real Photactions later.
           </div>
 
@@ -384,10 +384,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // 🔧 TODO: fill these with your real Supabase values
-    const SUPABASE_URL = 'https://amsqcwqoietunvazqwin.supabase.co
-';
-    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HEeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtc3Fjd3FvaWV0dW52YXpxd2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzNjE3MTEsImV4cCI6MjA3NTkzNzcxMX0.cnncSQ-T-ycozpTnefZvjDY33Eo3TZpYrRMoQuVPt4gRE';
+    // Supabase config
+    const SUPABASE_URL = 'https://amsqcwqoietunvazqwin.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtc3Fjd3FvaWV0dW52YXpxd2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzNjE3MTEsImV4cCI6MjA3NTkzNzcxMX0.cnncSQ-T-ycozpTnefZvjDY33Eo3TZpYrRMoQuVPt4g';
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -442,11 +441,11 @@
       if (files.length > 0) {
         analyzeBtn.disabled = false;
         statusMsg.innerHTML =
-          '<strong>Files loaded locally.</strong> Click “Upload + run mock AI analysis” to send a copy to your intake bucket and see a simulated summary here.';
+          '<strong>Files loaded locally.</strong> Click “Upload + run mock AI analysis” to store a copy and see a simulated summary.';
       } else {
         analyzeBtn.disabled = true;
         statusMsg.innerHTML =
-          '<strong>Prototype note:</strong> analysis stays in this browser. No files will be uploaded until you choose some and run the flow.';
+          '<strong>Prototype note:</strong> AI stays in this browser. No files will be uploaded until you choose some and run the flow.';
       }
     }
 
@@ -515,7 +514,6 @@
         console.error('Upload error:', err);
       }
 
-      // Now do the same mock AI as before
       analyzeBtn.textContent = 'Analyzing…';
 
       setTimeout(() => {
@@ -537,7 +535,6 @@
           a safe preview so you can feel how the flow behaves.
         `;
 
-        // Fill AI details panel
         severityBadges.innerHTML = `
           <div class="ai-chip urgent">
             <span>Urgent</span> · <span class="count">${urgentIssues}</span>
