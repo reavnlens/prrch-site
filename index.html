@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRRCH – Photo Recognition, Repair & Care Hub</title>
+  <title>PRRCH – Photo Recognition, Repair &amp; Care Hub</title>
   <style>
     body {
       margin: 0;
@@ -76,6 +76,11 @@
       padding: 20px 18px;
       background: rgba(15,23,42,0.85);
       text-align: center;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .upload-zone.dragging {
+      border-color: #38bdf8;
+      background: rgba(15,23,42,0.95);
     }
     .upload-zone p {
       margin: 0 0 18px;
@@ -96,6 +101,11 @@
       color: #0b1120;
       box-shadow: 0 14px 35px rgba(37,99,235,0.5);
     }
+    .btn-main span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
     .btn-main:disabled {
       opacity: 0.4;
       cursor: default;
@@ -113,6 +123,7 @@
       color: #e5e7eb;
       font-size: 13px;
       cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
     .btn-secondary:disabled {
       opacity: 0.35;
@@ -153,6 +164,7 @@
       margin-top: 14px;
       font-size: 12px;
       color: #9ca3af;
+      text-align: left;
     }
     .status strong {
       color: #f9fafb;
@@ -174,6 +186,89 @@
     .steps p {
       margin: 0 0 14px;
       color: #9ca3af;
+    }
+
+    /* AI result panel */
+    .ai-panel {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      background: radial-gradient(circle at top left, rgba(52,211,153,0.16), transparent 55%),
+                  rgba(15,23,42,0.9);
+      border: 1px solid rgba(52,211,153,0.4);
+      font-size: 13px;
+    }
+    .ai-panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #bbf7d0;
+    }
+    .ai-panel-title span.icon {
+      font-size: 16px;
+    }
+    .ai-grid {
+      display: grid;
+      gap: 10px;
+    }
+    @media (min-width: 720px) {
+      .ai-grid {
+        grid-template-columns: 1.1fr 1fr;
+      }
+    }
+    .ai-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .severity-chip {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148,163,184,0.5);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .severity-chip.urgent {
+      border-color: rgba(248,113,113,0.8);
+      background: rgba(127,29,29,0.6);
+      color: #fecaca;
+    }
+    .severity-chip.soon {
+      border-color: rgba(251,191,36,0.9);
+      background: rgba(120,53,15,0.5);
+      color: #fef3c7;
+    }
+    .severity-chip.routine {
+      border-color: rgba(52,211,153,0.8);
+      background: rgba(6,95,70,0.5);
+      color: #bbf7d0;
+    }
+    .ai-issues-list {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+    .ai-issues-list li {
+      margin-bottom: 4px;
+    }
+    .ai-next {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .ai-next ul {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+    .ai-next li {
+      margin-bottom: 3px;
     }
 
     .footer {
@@ -216,9 +311,11 @@
 
         <div class="upload-zone" id="drop-zone">
           <p>Drop files here, or click below to choose.</p>
-          <button class="btn-main" id="choose-btn">
-            <span>📷 Choose photos / PDF</span>
+
+          <button class="btn-main" id="choose-btn" type="button">
+            <span>📷 <span>Choose photos / PDF</span></span>
           </button>
+
           <input
             type="file"
             id="file-input"
@@ -229,7 +326,7 @@
 
           <div class="file-list" id="file-list" style="display:none"></div>
 
-          <button class="btn-secondary" id="analyze-btn" disabled>
+          <button class="btn-secondary" id="analyze-btn" type="button" disabled>
             <span>⚙️ Run mock AI analysis</span>
           </button>
 
@@ -237,12 +334,34 @@
             <strong>Prototype note:</strong> uploads stay local to this browser. In the real app,
             this step feeds a private Photaction workspace.
           </div>
+
+          <!-- New AI details panel (filled after analysis) -->
+          <div id="ai-details" class="ai-panel" style="display:none;">
+            <div class="ai-panel-title">
+              <span class="icon">🧠</span>
+              <span>Mock AI gut check details</span>
+            </div>
+            <div class="ai-grid">
+              <div>
+                <div class="ai-badges" id="severity-badges"></div>
+                <ul class="ai-issues-list" id="issue-list"></ul>
+              </div>
+              <div class="ai-next">
+                <strong>Next steps (prototype view):</strong>
+                <ul>
+                  <li>Review urgent items marked in red.</li>
+                  <li>Decide what you’d like vendors to see.</li>
+                  <li>When ready, share a trimmed “vendor view” only.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- RIGHT: Explanation -->
       <div class="steps">
-        <h3>Phase 1 – Upload & organize</h3>
+        <h3>Phase 1 – Upload &amp; organize</h3>
         <p>
           Take the messy camera roll or inspection report and group photos and pages into a single
           “Photaction” – the starting point for estimates, checklists, and quotes.
@@ -265,40 +384,48 @@
     </div>
 
     <div class="footer">
-      <span>PRRCH – Photo Recognition, Repair & Care Hub.</span>
+      <span>PRRCH – Photo Recognition, Repair &amp; Care Hub.</span>
       <span>Built on the Raevn intelligence layer. Prototype only – UI and flow preview.</span>
     </div>
   </div>
 
   <script>
-    const fileInput = document.getElementById('file-input');
-    const chooseBtn = document.getElementById('choose-btn');
-    const fileListEl = document.getElementById('file-list');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const statusMsg = document.getElementById('status-msg');
-    const aiSummary = document.getElementById('ai-summary');
-    const dropZone = document.getElementById('drop-zone');
+    const fileInput   = document.getElementById('file-input');
+    const chooseBtn   = document.getElementById('choose-btn');
+    const fileListEl  = document.getElementById('file-list');
+    const analyzeBtn  = document.getElementById('analyze-btn');
+    const statusMsg   = document.getElementById('status-msg');
+    const aiSummary   = document.getElementById('ai-summary');
+    const dropZone    = document.getElementById('drop-zone');
+
+    const aiDetails   = document.getElementById('ai-details');
+    const severityBadges = document.getElementById('severity-badges');
+    const issueList   = document.getElementById('issue-list');
 
     let files = [];
 
+    // Choose button opens hidden input
     chooseBtn.addEventListener('click', () => fileInput.click());
+
+    // File input change
     fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-    // Drag & drop
+    // Drag & drop highlights
     ['dragenter', 'dragover'].forEach(evt =>
       dropZone.addEventListener(evt, (e) => {
         e.preventDefault();
         e.stopPropagation();
-        dropZone.style.borderColor = '#38bdf8';
+        dropZone.classList.add('dragging');
       })
     );
     ['dragleave', 'drop'].forEach(evt =>
       dropZone.addEventListener(evt, (e) => {
         e.preventDefault();
         e.stopPropagation();
-        dropZone.style.borderColor = 'rgba(148,163,184,0.6)';
+        dropZone.classList.remove('dragging');
       })
     );
+
     dropZone.addEventListener('drop', (e) => {
       if (e.dataTransfer?.files?.length) {
         handleFiles(e.dataTransfer.files);
@@ -308,14 +435,17 @@
     function handleFiles(fileList) {
       files = Array.from(fileList);
       renderFileList();
+
       if (files.length > 0) {
         analyzeBtn.disabled = false;
         statusMsg.innerHTML =
           '<strong>Files loaded locally.</strong> Click “Run mock AI analysis” to see a simulated summary.';
+        aiDetails.style.display = 'none';
       } else {
         analyzeBtn.disabled = true;
         statusMsg.innerHTML =
           '<strong>Prototype note:</strong> uploads stay local to this browser. In the real app, this feeds a private Photaction workspace.';
+        aiDetails.style.display = 'none';
       }
     }
 
@@ -349,11 +479,13 @@
 
       // Fake “AI” timing
       setTimeout(() => {
-        const totalFiles = files.length;
-        const pdfCount = files.filter(f => f.type.includes('pdf')).length;
-        const imageCount = totalFiles - pdfCount;
+        const totalFiles  = files.length;
+        const pdfCount    = files.filter(f => (f.type || '').includes('pdf')).length;
+        const imageCount  = totalFiles - pdfCount;
         const approxIssues = Math.max(3, Math.round(totalFiles * 4 + Math.random() * 6));
         const urgentIssues = Math.max(1, Math.round(approxIssues * 0.3));
+        const soonIssues   = Math.max(1, Math.round(approxIssues * 0.4));
+        const routineIssues = Math.max(1, approxIssues - urgentIssues - soonIssues);
 
         aiSummary.innerHTML = `
           <strong>Mock AI gut check:</strong><br/>
@@ -364,6 +496,29 @@
           grouped photos, highlighted issues, and ready-to-share scopes. Here it’s just
           a safe preview so you can feel how the flow behaves.
         `;
+
+        // Fill severity chips
+        severityBadges.innerHTML = `
+          <span class="severity-chip urgent">● Urgent · ${urgentIssues}</span>
+          <span class="severity-chip soon">● Fix soon · ${soonIssues}</span>
+          <span class="severity-chip routine">● Routine · ${routineIssues}</span>
+        `;
+
+        // Sample issue descriptions (fake)
+        const samples = [
+          'Water staining noted under kitchen sink – monitor for active leaks.',
+          'Cracked caulking and gaps around upstairs tub/shower surround.',
+          'HVAC condenser coil appears dirty – recommend cleaning for efficiency.',
+          'Minor settlement cracking along driveway and front walkway.',
+          'Loose handrail at basement stairs – tighten/secure for safety.',
+          'Attic insulation appears thin in several bays – consider adding.',
+          'GFCI protection missing at at least one countertop outlet.'
+        ];
+
+        const shuffled = samples.sort(() => Math.random() - 0.5).slice(0, 3);
+        issueList.innerHTML = shuffled.map(text => `<li>${text}</li>`).join('');
+
+        aiDetails.style.display = 'block';
 
         statusMsg.innerHTML =
           '<strong>Done.</strong> This was a local-only mock. No files were uploaded or stored.';
