@@ -287,7 +287,7 @@
     <h2>
       PRRCH is a quiet preview of Raevn’s photo-to-action workspace.
       For now, this page lets you try the upload flow and see a mock “AI gut check”
-      without anything leaving your browser.
+      while a copy of your files is stored securely.
     </h2>
 
     <div class="layout">
@@ -296,7 +296,7 @@
         <div class="card-title">Upload inspection photos or reports</div>
         <div class="card-sub">
           Drop inspection photos or your finished inspection PDF here, or choose files from your device.
-          Prototype only — files never leave your browser.
+          A copy is stored in a private intake bucket; analysis here is still a mock.
         </div>
 
         <div class="upload-zone" id="drop-zone">
@@ -315,15 +315,15 @@
           <div class="file-list" id="file-list" style="display:none"></div>
 
           <button class="btn-secondary" id="analyze-btn" disabled>
-            <span>⚙️ Run mock AI analysis</span>
+            <span>⚙️ Upload + run mock AI analysis</span>
           </button>
 
           <div class="status" id="status-msg">
-            <strong>Prototype note:</strong> uploads stay local to this browser. In the real app,
-            this step feeds a private Photaction workspace.
+            <strong>Prototype note:</strong> analysis stays in this browser. Files are copied to a private intake bucket
+            so you can wire this into real Photactions later.
           </div>
 
-          <!-- NEW: AI details panel -->
+          <!-- AI details panel -->
           <div class="ai-panel" id="ai-details" style="display:none;">
             <div class="ai-panel-title">
               <span class="icon">🧠</span>
@@ -362,7 +362,7 @@
         <p id="ai-summary">
           This prototype will soon give you a rough “AI gut check” summary:
           how many pages, how many flagged items, and which issues look urgent.
-          For now, click “Run mock AI analysis” to see a fake example based on the files you picked.
+          For now, click “Upload + run mock AI analysis” to see a fake example based on the files you picked.
         </p>
 
         <h3>Phase 3 – Local quotes (opt-in)</h3>
@@ -380,7 +380,18 @@
     </div>
   </div>
 
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
+    // 🔧 TODO: fill these with your real Supabase values
+    const SUPABASE_URL = 'https://amsqcwqoietunvazqwin.supabase.co
+';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HEeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtc3Fjd3FvaWV0dW52YXpxd2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzNjE3MTEsImV4cCI6MjA3NTkzNzcxMX0.cnncSQ-T-ycozpTnefZvjDY33Eo3TZpYrRMoQuVPt4gRE';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // DOM refs
     const fileInput = document.getElementById('file-input');
     const chooseBtn = document.getElementById('choose-btn');
     const fileListEl = document.getElementById('file-list');
@@ -389,7 +400,6 @@
     const aiSummary = document.getElementById('ai-summary');
     const dropZone = document.getElementById('drop-zone');
 
-    // NEW: AI panel refs
     const aiDetails = document.getElementById('ai-details');
     const severityBadges = document.getElementById('severity-badges');
     const issueList = document.getElementById('issue-list');
@@ -423,7 +433,8 @@
     function handleFiles(fileList) {
       files = Array.from(fileList);
       renderFileList();
-      // reset AI details whenever the file set changes
+
+      // reset AI details whenever files change
       aiDetails.style.display = 'none';
       severityBadges.innerHTML = '';
       issueList.innerHTML = '';
@@ -431,11 +442,11 @@
       if (files.length > 0) {
         analyzeBtn.disabled = false;
         statusMsg.innerHTML =
-          '<strong>Files loaded locally.</strong> Click “Run mock AI analysis” to see a simulated summary.';
+          '<strong>Files loaded locally.</strong> Click “Upload + run mock AI analysis” to send a copy to your intake bucket and see a simulated summary here.';
       } else {
         analyzeBtn.disabled = true;
         statusMsg.innerHTML =
-          '<strong>Prototype note:</strong> uploads stay local to this browser. In the real app, this feeds a private Photaction workspace.';
+          '<strong>Prototype note:</strong> analysis stays in this browser. No files will be uploaded until you choose some and run the flow.';
       }
     }
 
@@ -459,18 +470,57 @@
       }).join('');
     }
 
-    analyzeBtn.addEventListener('click', () => {
+    async function uploadFilesToSupabase(files) {
+      const results = [];
+      const timestamp = Date.now();
+
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const safeName = f.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const path = `intake/${timestamp}-${i}-${safeName}`;
+
+        const { data, error } = await supabase
+          .storage
+          .from('prrch_intake') // bucket name
+          .upload(path, f, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        results.push({ file: f, data, error, path });
+      }
+
+      const errors = results.filter(r => r.error);
+      return {
+        total: results.length,
+        uploaded: results.length - errors.length,
+        errors
+      };
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
       if (!files.length) return;
+
       analyzeBtn.disabled = true;
-      analyzeBtn.textContent = 'Analyzing…';
+      analyzeBtn.textContent = 'Uploading…';
 
       statusMsg.innerHTML =
-        'Running mock analysis in your browser. In the real build, this would hand off to Raevn’s AI layer.';
+        'Uploading a copy of your files to your private intake bucket, then running a mock AI gut check here in the browser.';
 
-      // Fake “AI” timing
+      let uploadSummary = null;
+
+      try {
+        uploadSummary = await uploadFilesToSupabase(files);
+      } catch (err) {
+        console.error('Upload error:', err);
+      }
+
+      // Now do the same mock AI as before
+      analyzeBtn.textContent = 'Analyzing…';
+
       setTimeout(() => {
         const totalFiles = files.length;
-        const pdfCount = files.filter(f => f.type.toLowerCase().includes('pdf')).length;
+        const pdfCount = files.filter(f => (f.type || '').toLowerCase().includes('pdf')).length;
         const imageCount = totalFiles - pdfCount;
         const approxIssues = Math.max(3, Math.round(totalFiles * 4 + Math.random() * 6));
         const urgentIssues = Math.max(1, Math.round(approxIssues * 0.3));
@@ -487,7 +537,7 @@
           a safe preview so you can feel how the flow behaves.
         `;
 
-        // === NEW: fill AI details panel ===
+        // Fill AI details panel
         severityBadges.innerHTML = `
           <div class="ai-chip urgent">
             <span>Urgent</span> · <span class="count">${urgentIssues}</span>
@@ -520,9 +570,21 @@
 
         aiDetails.style.display = 'block';
 
+        let uploadLine = '';
+        if (uploadSummary && uploadSummary.total) {
+          uploadLine =
+            ` Files stored: <strong>${uploadSummary.uploaded}/${uploadSummary.total}</strong> in your private intake bucket.`;
+          if (uploadSummary.errors && uploadSummary.errors.length) {
+            uploadLine += ' Some files failed to upload; check the console for details.';
+          }
+        } else {
+          uploadLine = ' (Upload step is still in prototype mode.)';
+        }
+
         statusMsg.innerHTML =
-          '<strong>Done.</strong> This was a local-only mock. No files were uploaded or stored.';
-        analyzeBtn.textContent = 'Run mock AI analysis again';
+          `<strong>Done.</strong> Mock AI ran in this browser.${uploadLine}`;
+
+        analyzeBtn.textContent = 'Upload + run mock AI analysis again';
         analyzeBtn.disabled = false;
       }, 1200);
     });
