@@ -480,7 +480,7 @@
 
         const { data, error } = await supabase
           .storage
-          .from('prrch_intake') // bucket name
+          .from('prrch_intakes') // bucket name
           .upload(path, f, {
             cacheControl: '3600',
             upsert: false
